@@ -56,20 +56,28 @@ def get_outputpath(parent_dir: Path, filename: str, use_orig_extension: bool):
 
 
 def extract_macros(parser: VBA_Parser, vba_encoding):
-
     if parser.ole_file is None:
         for subfile in parser.ole_subfiles:
-            for results in extract_macros(subfile, vba_encoding):
-                yield results
+            try:
+                for results in extract_macros(subfile, vba_encoding):
+                    yield results
+            except Exception as e:
+                print(f"Error processing subfile: {subfile}, Error: {e}")
     else:
-        parser.find_vba_projects()
-        for (vba_root, project_path, dir_path) in parser.vba_projects:
-            project = VBA_Project(parser.ole_file, vba_root, project_path, dir_path, relaxed=False)
-            project.codec = vba_encoding
-            project.parse_project_stream()
+        try:
+            parser.find_vba_projects()
+            for (vba_root, project_path, dir_path) in parser.vba_projects:
+                try:
+                    project = VBA_Project(parser.ole_file, vba_root, project_path, dir_path, relaxed=False)
+                    project.codec = vba_encoding
+                    project.parse_project_stream()
 
-            for code_path, vba_filename, code_data in project.parse_modules():
-                yield (vba_filename, code_data)
+                    for code_path, vba_filename, code_data in project.parse_modules():
+                        yield (vba_filename, code_data)
+                except Exception as e:
+                    print(f"Error processing VBA project: {dir_path}, Error: {e}")
+        except Exception as e:
+            print(f"Error finding VBA projects in file: {parser.ole_file}, Error: {e}")
 
 
 if __name__ == '__main__':
