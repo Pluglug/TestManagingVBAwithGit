@@ -59,27 +59,17 @@ def extract_macros(parser: VBA_Parser, vba_encoding):
 
     if parser.ole_file is None:
         for subfile in parser.ole_subfiles:
-            try:
-                for results in extract_macros(subfile, vba_encoding):
-                    yield results
-            except Exception as e:
-                print(f"Error processing subfile: {e}")
+            for results in extract_macros(subfile, vba_encoding):
+                yield results
     else:
-        try:
-            parser.find_vba_projects()
-            for (vba_root, project_path, dir_path) in parser.vba_projects:
-                try:
-                    project = VBA_Project(parser.ole_file, vba_root, project_path, dir_path, relaxed=False)
-                    project.codec = vba_encoding
-                    project.parse_project_stream()
+        parser.find_vba_projects()
+        for (vba_root, project_path, dir_path) in parser.vba_projects:
+            project = VBA_Project(parser.ole_file, vba_root, project_path, dir_path, relaxed=True)
+            project.codec = vba_encoding
+            project.parse_project_stream()
 
-                    for code_path, vba_filename, code_data in project.parse_modules():
-                        yield (vba_filename, code_data)
-                except Exception as e:
-                    print(f"Error processing VBA project {project_path}: {e}")
-        except Exception as e:
-            print(f"Error finding VBA projects: {e}")
-
+            for code_path, vba_filename, code_data in project.parse_modules():
+                yield (vba_filename, code_data)
 
 
 if __name__ == '__main__':
