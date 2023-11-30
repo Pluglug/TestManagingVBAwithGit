@@ -56,13 +56,14 @@ def get_outputpath(parent_dir: Path, filename: str, use_orig_extension: bool):
 
 
 def extract_macros(parser: VBA_Parser, vba_encoding):
+
     if parser.ole_file is None:
         for subfile in parser.ole_subfiles:
             try:
                 for results in extract_macros(subfile, vba_encoding):
                     yield results
             except Exception as e:
-                print(f"Error processing subfile: {subfile}, Error: {e}")
+                print(f"Error processing subfile: {e}")
     else:
         try:
             parser.find_vba_projects()
@@ -75,9 +76,10 @@ def extract_macros(parser: VBA_Parser, vba_encoding):
                     for code_path, vba_filename, code_data in project.parse_modules():
                         yield (vba_filename, code_data)
                 except Exception as e:
-                    print(f"Error processing VBA project: {dir_path}, Error: {e}")
+                    print(f"Error processing VBA project {project_path}: {e}")
         except Exception as e:
-            print(f"Error finding VBA projects in file: {parser.ole_file}, Error: {e}")
+            print(f"Error finding VBA projects: {e}")
+
 
 
 if __name__ == '__main__':
